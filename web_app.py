@@ -56,6 +56,11 @@ if 'last_refresh' not in st.session_state:
     st.session_state.last_refresh = None
 if 'selected_stock' not in st.session_state:
     st.session_state.selected_stock = None
+# 自定义策略配置存储
+if 'custom_configs' not in st.session_state:
+    st.session_state.custom_configs = {}
+if 'selected_config' not in st.session_state:
+    st.session_state.selected_config = "默认配置"
 
 # ==================== 导入策略模块 ====================
 try:
@@ -108,6 +113,59 @@ def run_stock_screening():
         return results, result_file
     except Exception as e:
         return None, str(e)
+
+# ==================== 自定义配置管理 ====================
+CONFIG_FILE = "strategy_configs.json"
+
+def load_custom_configs():
+    """从文件加载自定义配置"""
+    try:
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except:
+        pass
+    return {}
+
+def save_custom_configs(configs):
+    """保存自定义配置到文件"""
+    try:
+        with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+            json.dump(configs, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        st.error(f"保存失败: {e}")
+        return False
+
+def get_default_config():
+    """获取默认配置"""
+    return {
+        'name': '默认配置',
+        'description': '主力埋伏策略 v4.1 (优化评分版)',
+        'params': {
+            'MIN_MV': 200000,  # 20亿
+            'MAX_MV': 20000000,  # 200亿
+            'MIN_PCT': 0.5,  # 0.5%
+            'MAX_PCT': 8.0,  # 8.0%
+            'MAX_DEVIATION': 5.0,
+            'INDEX_RISK_THR': -0.6,
+            'MIN_AMOUNT': 10000000,  # 1亿
+        },
+        'weights': {
+            'deviation_score': 25,
+            'change_score': 15,
+            'turnover_score': 20,
+            'amount_score': 20,
+            'position_score': 15,
+            'amplitude_score': 5
+        }
+    }
+
+def get_all_configs():
+    """获取所有配置（包括默认配置）"""
+    configs = {'默认配置': get_default_config()}
+    configs.update(load_custom_configs())
+    return configs
 
 # ==================== 主页面 ====================
 def main():
@@ -438,72 +496,216 @@ def show_strategy_config():
     """策略配置页面"""
     st.markdown("# ⚙️ 策略参数配置")
 
-    if not CONFIG_AVAILABLE:
-        st.error("配置模块未加载，无法显示参数")
-        return
+    # 加载所有配置
+    all_configs = get_all_configs()
 
-    config = StockScreenerConfig()
-    params = config.main_force_burial_params
-
-    st.subheader("📊 当前策略参数")
-
-    col1, col2 = st.columns(2)
+    # 创建两列布局
+    col1, col2 = st.columns([1, 2])
 
     with col1:
-        st.markdown("### 基础参数")
-        st.info(f"**最小市值**: {params.get('MIN_MV', 0) / 100000000:.1f}亿")
-        st.info(f"**最大市值**: {params.get('MAX_MV', 0) / 100000000:.0f}亿")
-        st.info(f"**最小涨幅**: {params.get('MIN_PCT', 0)}%")
-        st.info(f"**最大涨幅**: {params.get('MAX_PCT', 0)}%")
+        st.markdown("### 📋 配置列表")
+
+        # 显示配置列表
+        for config_name in list(all_configs.keys()):
+            with st.container():
+                c1, c2, c3 = st.columns([3, 1, 1])
+                c1.write(f"**{config_name}**")
+                if config_name != '默认配置':
+                    if c2.button("✏️", key=f"edit_{config_name}"):
+                        st.session_state.edit_config = config_name
+                    if c3.button("🗑️", key=f"delete_{config_name}"):
+                        if st.session_state.get('confirm_delete', '') == config_name:
+                            custom_configs = load_custom_configs()
+                            if config_name in custom_configs:
+                                del custom_configs[config_name]
+                                save_custom_configs(custom_configs)
+                                st.session_state.custom_configs = custom_configs
+                                st.rerun()
+                        else:
+                            st.session_state.confirm_delete = config_name
+                            st.warning("再次点击确认删除")
+
+        if st.button("➕ 新建配置", use_container_width=True):
+            st.session_state.edit_config = None
+            st.session_state.show_new_config = True
 
     with col2:
-        st.markdown("### 风控参数")
-        st.info(f"**最大乖离率**: {params.get('MAX_DEVIATION', 0)}%")
-        st.info(f"**指数风险阈值**: {params.get('INDEX_RISK_THR', 0)}%")
-        st.info(f"**最小成交额**: {params.get('MIN_AMOUNT', 0) / 100000000:.1f}亿")
+        st.markdown("### 📝 配置详情")
 
-    st.markdown("---")
+        # 确定要编辑的配置
+        edit_config_name = st.session_state.get('edit_config')
+        show_new = st.session_state.get('show_new_config', False)
 
-    # 评分权重
-    st.subheader("⚖️ 评分权重配置")
+        if show_new or edit_config_name is not None:
+            # 新建或编辑配置
+            is_new = edit_config_name is None
+            config_title = "新建配置" if is_new else f"编辑: {edit_config_name}"
 
-    weights = {
-        '乖离率': 25,
-        '换手率': 20,
-        '成交额': 20,
-        '价格位置': 15,
-        '涨幅': 15,
-        '振幅': 5
-    }
+            st.subheader(config_title)
 
-    col1, col2, col3 = st.columns(3)
-    for i, (name, weight) in enumerate(weights.items()):
-        if i % 3 == 0:
-            cols = [col1, col2, col3]
-        cols[i % 3].metric(name, f"{weight}%")
+            # 配置名称
+            config_name = st.text_input(
+                "配置名称",
+                value="" if is_new else edit_config_name,
+                disabled=not is_new
+            )
 
-    with st.expander("📖 参数说明"):
-        st.markdown("""
-        **市值筛选**: 剔除过小和过大的股票，保持适中的流通性
+            config_desc = st.text_input(
+                "配置描述",
+                value="" if is_new else all_configs[edit_config_name].get('description', '')
+            )
 
-        **涨幅限制**: 避免追高风险和表现过弱的股票
+            st.markdown("---")
+            st.markdown("#### 基础参数")
 
-        **乖离率控制**: 确保股价偏离均价在合理范围内
+            # 获取当前配置值
+            current_config = all_configs[edit_config_name] if not is_new else get_default_config()
+            params = current_config.get('params', {})
 
-        **换手率要求**: 确保有足够的活跃度
+            c1, c2, c3 = st.columns(3)
+            min_mv = c1.number_input("最小市值(亿)", 5, 500, params.get('MIN_MV', 200000) // 100000000)
+            max_mv = c2.number_input("最大市值(亿)", 50, 2000, params.get('MAX_MV', 20000000) // 100000000)
+            min_pct = c3.number_input("最小涨幅(%)", 0.0, 10.0, params.get('MIN_PCT', 0.5), 0.1)
 
-        **成交额要求**: 确保有足够流动性
-        """)
+            c1, c2, c3 = st.columns(3)
+            max_pct = c1.number_input("最大涨幅(%)", 0.0, 20.0, params.get('MAX_PCT', 8.0), 0.1)
+            max_dev = c2.number_input("最大乖离率(%)", 0.0, 20.0, params.get('MAX_DEVIATION', 5.0), 0.1)
+            min_amt = c3.number_input("最小成交额(亿)", 0.1, 50.0, params.get('MIN_AMOUNT', 10000000) / 100000000, 0.1)
+
+            st.markdown("---")
+            st.markdown("#### 评分权重 (总和应为100)")
+
+            weights = current_config.get('weights', {})
+            w1, w2, w3 = st.columns(3)
+            dev_weight = w1.number_input("乖离率权重", 0, 100, weights.get('deviation_score', 25))
+            chg_weight = w2.number_input("涨幅权重", 0, 100, weights.get('change_score', 15))
+            trn_weight = w3.number_input("换手率权重", 0, 100, weights.get('turnover_score', 20))
+
+            w1, w2, w3 = st.columns(3)
+            amt_weight = w1.number_input("成交额权重", 0, 100, weights.get('amount_score', 20))
+            pos_weight = w2.number_input("价格位置权重", 0, 100, weights.get('position_score', 15))
+            amp_weight = w3.number_input("振幅权重", 0, 100, weights.get('amplitude_score', 5))
+
+            total_weight = dev_weight + chg_weight + trn_weight + amt_weight + pos_weight + amp_weight
+            st.info(f"权重总和: {total_weight}% " + ("✅" if total_weight == 100 else "⚠️ 应为100%"))
+
+            # 保存按钮
+            col_save, col_cancel = st.columns(2)
+            if col_save.button("💾 保存配置", type="primary", use_container_width=True):
+                if not config_name:
+                    st.error("请输入配置名称")
+                elif config_name == '默认配置' and is_new:
+                    st.error("不能使用'默认配置'作为名称")
+                elif total_weight != 100:
+                    st.error("权重总和必须为100%")
+                else:
+                    custom_configs = load_custom_configs()
+                    new_config = {
+                        'name': config_name,
+                        'description': config_desc,
+                        'params': {
+                            'MIN_MV': min_mv * 100000000,
+                            'MAX_MV': max_mv * 100000000,
+                            'MIN_PCT': min_pct,
+                            'MAX_PCT': max_pct,
+                            'MAX_DEVIATION': max_dev,
+                            'INDEX_RISK_THR': -0.6,
+                            'MIN_AMOUNT': min_amt * 100000000,
+                        },
+                        'weights': {
+                            'deviation_score': dev_weight,
+                            'change_score': chg_weight,
+                            'turnover_score': trn_weight,
+                            'amount_score': amt_weight,
+                            'position_score': pos_weight,
+                            'amplitude_score': amp_weight
+                        }
+                    }
+                    custom_configs[config_name] = new_config
+                    if save_custom_configs(custom_configs):
+                        st.session_state.custom_configs = custom_configs
+                        st.session_state.edit_config = None
+                        st.session_state.show_new_config = False
+                        st.success(f"配置 '{config_name}' 已保存！")
+                        st.rerun()
+
+            if col_cancel.button("取消", use_container_width=True):
+                st.session_state.edit_config = None
+                st.session_state.show_new_config = False
+                st.rerun()
+
+        else:
+            # 显示当前选中配置的详情
+            selected = st.selectbox("选择配置查看", list(all_configs.keys()))
+            if selected:
+                config = all_configs[selected]
+                st.markdown(f"**描述**: {config.get('description', '')}")
+
+                st.markdown("---")
+                st.markdown("#### 基础参数")
+
+                params = config.get('params', {})
+                c1, c2, c3 = st.columns(3)
+                c1.metric("最小市值", f"{params.get('MIN_MV', 0) / 100000000:.0f}亿")
+                c2.metric("最大市值", f"{params.get('MAX_MV', 0) / 100000000:.0f}亿")
+                c3.metric("涨幅区间", f"{params.get('MIN_PCT', 0)}% - {params.get('MAX_PCT', 0)}%")
+
+                c1, c2, c3 = st.columns(3)
+                c1.metric("最大乖离率", f"{params.get('MAX_DEVIATION', 0)}%")
+                c2.metric("风险阈值", f"{params.get('INDEX_RISK_THR', 0)}%")
+                c3.metric("最小成交额", f"{params.get('MIN_AMOUNT', 0) / 100000000:.1f}亿")
+
+                st.markdown("---")
+                st.markdown("#### 评分权重")
+
+                weights = config.get('weights', {})
+                w_labels = {'deviation_score': '乖离率', 'change_score': '涨幅', 'turnover_score': '换手率',
+                           'amount_score': '成交额', 'position_score': '价格位置', 'amplitude_score': '振幅'}
+
+                c1, c2, c3 = st.columns(3)
+                for i, (k, label) in enumerate(w_labels.items()):
+                    col = [c1, c2, c3][i % 3]
+                    col.metric(label, f"{weights.get(k, 0)}%")
+
+    # 清理临时状态
+    if 'confirm_delete' in st.session_state and st.session_state.confirm_delete not in load_custom_configs():
+        del st.session_state.confirm_delete
 
 # ==================== 手动选股页面 ====================
 def show_manual_screening():
     """手动选股页面"""
     st.markdown("# 🚀 手动执行选股")
 
+    # 加载所有配置
+    all_configs = get_all_configs()
+
+    # 配置选择
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        selected_config = st.selectbox(
+            "选择策略配置",
+            list(all_configs.keys()),
+            index=list(all_configs.keys()).index(st.session_state.get('selected_config', '默认配置'))
+        )
+        st.session_state.selected_config = selected_config
+
+    # 显示当前配置摘要
+    config = all_configs[selected_config]
+    with col2:
+        st.markdown("**配置描述**")
+        st.caption(config.get('description', ''))
+    with col3:
+        params = config.get('params', {})
+        st.markdown("**参数摘要**")
+        st.caption(f"市值: {params['MIN_MV']/100000000:.0f}-{params['MAX_MV']/100000000:.0f}亿")
+        st.caption(f"涨幅: {params['MIN_PCT']}%-{params['MAX_PCT']}%")
+
+    st.markdown("---")
+
     st.markdown("""
     ### 执行说明
 
-    点击下方按钮将立即执行尾盘主力埋伏策略v4.1，获取实时选股结果。
+    点击下方按钮将立即执行选股策略，获取实时选股结果。
     预计执行时间：1-3分钟
     """)
 
@@ -521,7 +723,7 @@ def show_manual_screening():
                 status_text.text("📊 正在获取基础股票池...")
                 progress_bar.progress(20)
 
-                results, result_file = run_stock_screening()
+                results, result_file = run_stock_screening_with_config(config)
                 progress_bar.progress(50)
 
                 if results is not None:
@@ -529,14 +731,15 @@ def show_manual_screening():
                     progress_bar.progress(100)
 
                     st.success(f"成功选出 {len(results)} 只候选股票")
-                    st.json(results)
 
                     # 显示结果
                     st.markdown("---")
-                    st.subheader("📈 选股结果")
+                    st.subheader("📈 选股结果 TOP 10")
 
                     for i, stock in enumerate(results[:10], 1):
-                        st.markdown(f"**{i}. {stock['name']}** ({stock['code']}) - 评分: {round(stock['total_score'], 1)}")
+                        score = stock['total_score']
+                        score_color = "🟢" if score >= 75 else "🟡" if score >= 70 else "🔴"
+                        st.markdown(f"{score_color} **{i}. {stock['name']}** ({stock['code']}) - 评分: {round(score, 1)}")
 
                 else:
                     status_text.text(f"❌ 执行失败: {result_file}")
@@ -545,6 +748,8 @@ def show_manual_screening():
 
             except Exception as e:
                 st.error(f"执行出错: {e}")
+                import traceback
+                st.error(traceback.format_exc())
 
     st.markdown("---")
 
@@ -553,10 +758,53 @@ def show_manual_screening():
 
     latest_data, filename = load_latest_result()
     if latest_data:
-        st.info(f"上次执行: {latest_data.get('screening_time', '')}")
-        st.info(f"选股数量: {latest_data.get('total_stocks_found', 0)}只")
+        col1, col2 = st.columns(2)
+        col1.info(f"**上次执行**: {latest_data.get('screening_time', '')}")
+        col2.info(f"**选股数量**: {latest_data.get('total_stocks_found', 0)}只")
     else:
         st.warning("暂无执行记录")
+
+def run_stock_screening_with_config(config):
+    """使用指定配置执行选股策略"""
+    if not CONFIG_AVAILABLE:
+        return None, "配置模块未正确加载"
+
+    try:
+        import src.config as config_module
+        import src.main_force_burial_strategy as strategy_module
+
+        # 保存原始配置
+        original_params = config_module.StockScreenerConfig.main_force_burial_params
+        original_weights = None
+
+        # 应用自定义配置
+        if 'params' in config:
+            config_module.StockScreenerConfig.main_force_burial_params = config['params']
+
+        # 创建策略实例
+        strategy = strategy_module.MainForceBurialStrategy()
+
+        # 如果有自定义权重，应用权重
+        if 'weights' in config:
+            strategy.scoring_weights = config['weights']
+
+        # 执行选股
+        results = strategy.execute_strategy()
+
+        # 更新结果中的配置信息
+        if results:
+            for stock in results:
+                stock['config_name'] = config.get('name', '默认配置')
+
+        result_file = strategy.save_results()
+
+        # 恢复原始配置
+        config_module.StockScreenerConfig.main_force_burial_params = original_params
+
+        return results, result_file
+    except Exception as e:
+        import traceback
+        return None, f"{str(e)}\n{traceback.format_exc()}"
 
 # ==================== 页脚 ====================
 st.markdown("---")
