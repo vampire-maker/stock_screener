@@ -8,16 +8,32 @@ import os
 from typing import Dict, Any
 from dotenv import load_dotenv
 
-# 加载.env文件
+# 加载.env文件（本地开发）
 load_dotenv()
+
+# Streamlit Cloud兼容：尝试导入streamlit
+try:
+    import streamlit as st
+    STREAMLIT_CLOUD = hasattr(st, 'secrets')
+except ImportError:
+    STREAMLIT_CLOUD = False
+
+def get_env_var(key: str, default: str = '') -> str:
+    """获取环境变量（兼容本地和Streamlit Cloud）"""
+    if STREAMLIT_CLOUD:
+        try:
+            return st.secrets[key]
+        except (KeyError, FileNotFoundError):
+            return default
+    return os.getenv(key, default)
 
 class StockScreenerConfig:
     """股票筛选系统配置管理类"""
 
     def __init__(self):
         # API配置
-        self.GUGU_APPKEY = 'SQSM4ASGQT6UN363PWA9M6256764WYBS'  # 刚续费的APPKEY
-        self.TUSHARE_TOKEN = os.getenv('TUSHARE_TOKEN', 'fb8b11e0099681fc2e706351fa6ff0bb593053d1c9681800a72a0fcd')
+        self.GUGU_APPKEY = get_env_var('GUGU_APPKEY', 'SQSM4ASGQT6UN363PWA9M6256764WYBS')
+        self.TUSHARE_TOKEN = get_env_var('TUSHARE_TOKEN', 'fb8b11e0099681fc2e706351fa6ff0bb593053d1c9681800a72a0fcd')
 
         # API端点
         self.GUGU_API_BASE = "https://api.gugudata.com/stock/cn/realtime"
@@ -86,13 +102,13 @@ class StockScreenerConfig:
 
         # 邮件配置
         self.email_config = {
-            'enabled': os.getenv('EMAIL_ENABLED', 'true').lower() == 'true',
-            'smtp_server': os.getenv('SMTP_SERVER', 'smtp.163.com'),
-            'smtp_port': int(os.getenv('SMTP_PORT', 465)),
-            'sender_email': os.getenv('SENDER_EMAIL', ''),
-            'sender_password': os.getenv('SENDER_PASSWORD', ''),
-            'recipients': os.getenv('RECIPIENTS', '').split(',') if os.getenv('RECIPIENTS') else [],
-            'use_tls': os.getenv('SMTP_PORT', '587') == '587'  # 587端口使用STARTTLS
+            'enabled': get_env_var('EMAIL_ENABLED', 'true').lower() == 'true',
+            'smtp_server': get_env_var('SMTP_SERVER', 'smtp.163.com'),
+            'smtp_port': int(get_env_var('SMTP_PORT', '465')),
+            'sender_email': get_env_var('SENDER_EMAIL', ''),
+            'sender_password': get_env_var('SENDER_PASSWORD', ''),
+            'recipients': get_env_var('RECIPIENTS', '').split(',') if get_env_var('RECIPIENTS', '') else [],
+            'use_tls': get_env_var('SMTP_PORT', '587') == '587'  # 587端口使用STARTTLS
         }
 
         # 智能股票池配置
