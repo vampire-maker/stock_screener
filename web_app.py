@@ -143,13 +143,13 @@ def get_default_config():
         'name': '默认配置',
         'description': '主力埋伏策略 v4.1 (优化评分版)',
         'params': {
-            'MIN_MV': 200000,  # 20亿
-            'MAX_MV': 20000000,  # 200亿
+            'MIN_MV': 500000000,  # 5亿 (调整为有效范围)
+            'MAX_MV': 20000000000,  # 200亿
             'MIN_PCT': 0.5,  # 0.5%
             'MAX_PCT': 8.0,  # 8.0%
             'MAX_DEVIATION': 5.0,
             'INDEX_RISK_THR': -0.6,
-            'MIN_AMOUNT': 10000000,  # 1亿
+            'MIN_AMOUNT': 100000000,  # 1亿
         },
         'weights': {
             'deviation_score': 25,
@@ -562,9 +562,13 @@ def show_strategy_config():
             current_config = all_configs[edit_config_name] if not is_new else get_default_config()
             params = current_config.get('params', {})
 
+            # 确保值在有效范围内
+            default_min_mv = max(5, min(500, params.get('MIN_MV', 200000) // 100000000))
+            default_max_mv = max(50, min(2000, params.get('MAX_MV', 20000000) // 100000000))
+
             c1, c2, c3 = st.columns(3)
-            min_mv = c1.number_input("最小市值(亿)", 5, 500, params.get('MIN_MV', 200000) // 100000000)
-            max_mv = c2.number_input("最大市值(亿)", 50, 2000, params.get('MAX_MV', 20000000) // 100000000)
+            min_mv = c1.number_input("最小市值(亿)", 1, 500, default_min_mv)
+            max_mv = c2.number_input("最大市值(亿)", 10, 5000, default_max_mv)
             min_pct = c3.number_input("最小涨幅(%)", 0.0, 10.0, params.get('MIN_PCT', 0.5), 0.1)
 
             c1, c2, c3 = st.columns(3)
