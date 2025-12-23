@@ -19,35 +19,247 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 自定义CSS样式
+# 自定义CSS样式 - 暗色主题 + 玻璃态效果
 st.markdown("""
 <style>
+    /* 全局样式 - 暗色主题 */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    /* 覆盖Streamlit默认样式 */
+    .main {
+        background-color: #050505 !important;
+    }
+
+    /* 侧边栏样式 */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+        border-right: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* 玻璃态效果 */
+    .glass-card {
+        background: rgba(20, 20, 25, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .glass-card:hover {
+        border-color: rgba(99, 102, 241, 0.3);
+        box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1);
+    }
+
+    /* 主标题样式 */
     .main-header {
         text-align: center;
-        padding: 1rem;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        border-radius: 10px;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        border-radius: 16px;
         margin-bottom: 2rem;
-        color: white;
+        position: relative;
+        overflow: hidden;
     }
-    .metric-card {
-        background: white;
-        padding: 1rem;
+
+    .main-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent 50%);
+        pointer-events: none;
+    }
+
+    /* 股票卡片样式 */
+    .stock-card {
+        background: rgba(20, 20, 25, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .stock-card:hover {
+        background: rgba(30, 30, 40, 0.8);
+        border-color: rgba(99, 102, 241, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 评分指示器 */
+    .score-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: 'Inter', monospace;
+    }
+
+    .score-high {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .score-medium {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .score-low {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* 涨跌幅标签 */
+    .change-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        font-family: 'Inter', monospace;
+    }
+
+    .change-positive {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+    }
+
+    .change-negative {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+    }
+
+    /* 按钮样式增强 */
+    .stButton > button {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    /* 输入框样式 */
+    .stTextInput > div > div > input,
+    .stSelectbox > div > div > select,
+    .stNumberInput > div > div > input {
+        background: rgba(10, 10, 15, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #e5e7eb;
         border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stTextInput > div > div > input:focus,
+    .stSelectbox > div > div > select:focus,
+    .stNumberInput > div > div > input:focus {
+        border-color: rgba(99, 102, 241, 0.5);
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+    }
+
+    /* 指标卡片 */
+    .metric-container {
+        background: rgba(20, 20, 25, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
         text-align: center;
     }
-    .stock-card {
-        background: white;
-        padding: 1rem;
-        border-radius: 8px;
-        border-left: 4px solid #667eea;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 1rem;
+
+    /* 表格样式 */
+    .dataframe {
+        background: rgba(20, 20, 25, 0.6);
+        border-radius: 12px;
+        overflow: hidden;
     }
-    .score-high { border-left-color: #10b981; }
-    .score-medium { border-left-color: #f59e0b; }
-    .score-low { border-left-color: #ef4444; }
+
+    /* Expander样式 */
+    .streamlit-expanderHeader {
+        background: rgba(30, 30, 40, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+    }
+
+    /* 进度条样式 */
+    .stProgress > div > div > div > div {
+        background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+    }
+
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* 股票代码徽章 */
+    .stock-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        background: rgba(99, 102, 241, 0.2);
+        color: #a5b4fc;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    /* 闪烁效果 */
+    @keyframes pulse-glow {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .pulse-dot {
+        animation: pulse-glow 2s infinite;
+    }
+
+    /* 信息提示框 */
+    .stInfo, .stSuccess, .stWarning {
+        background: rgba(20, 20, 25, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 10px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -223,77 +435,166 @@ def main():
 # ==================== 首页 ====================
 def show_homepage():
     """首页"""
-    st.markdown('<div class="main-header">', unsafe_allow_html=True)
-    st.markdown("# 🚀 A股尾盘主力埋伏策略系统")
-    st.markdown("### 基于量化分析的智能选股 | 实时数据 | 自动邮件通知")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    # 核心指标
-    col1, col2, col3, col4 = st.columns(4)
+    # 标题区域
+    st.markdown("""
+    <div class="main-header" style="position:relative;z-index:1;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:1rem;">
+            <div style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);padding:0.75rem;border-radius:12px;box-shadow:0 4px 20px rgba(99,102,241,0.3);">
+                <span style="font-size:1.5rem;">✨</span>
+            </div>
+            <div>
+                <h1 style="color:white;margin:0;font-size:1.75rem;font-weight:700;">A股尾盘主力埋伏策略</h1>
+                <p style="color:#9ca3af;margin:0;font-size:0.9rem;">基于量化分析的智能选股 | 实时数据 | 自动邮件通知</p>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # 获取最新结果统计
     latest_data, _ = load_latest_result()
 
+    # 核心指标卡片
+    col1, col2, col3, col4 = st.columns(4)
+
     if latest_data:
         total_stocks = latest_data.get('total_stocks_found', 0)
         avg_score = pd.DataFrame(latest_data.get('stocks', []))['total_score'].mean() if latest_data.get('stocks') else 0
+        exec_time = latest_data.get('screening_time', '')
 
-        col1.metric("今日选股", f"{total_stocks}只")
-        col2.metric("平均评分", f"{avg_score:.1f}")
-        col3.metric("执行时间", latest_data.get('screening_time', ''))
-        col4.metric("策略版本", "v4.1")
+        with col1:
+            st.markdown(f"""
+            <div class="metric-container">
+                <div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">今日选股</div>
+                <div style="font-size:1.5rem;font-weight:700;color:#e5e7eb;">{total_stocks}<span style="font-size:0.9rem;color:#9ca3af;">只</span></div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            score_color = "#34d399" if avg_score >= 75 else "#fbbf24" if avg_score >= 70 else "#f87171"
+            st.markdown(f"""
+            <div class="metric-container">
+                <div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">平均评分</div>
+                <div style="font-size:1.5rem;font-weight:700;color:{score_color};">{avg_score:.1f}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col3:
+            st.markdown(f"""
+            <div class="metric-container">
+                <div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">执行时间</div>
+                <div style="font-size:0.85rem;font-weight:500;color:#9ca3af;">{exec_time.split()[1] if exec_time else '--'}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col4:
+            st.markdown("""
+            <div class="metric-container">
+                <div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">策略版本</div>
+                <div style="font-size:1rem;font-weight:600;color:#a5b4fc;">v4.1</div>
+            </div>
+            """, unsafe_allow_html=True)
     else:
-        col1.metric("今日选股", "暂无数据")
-        col2.metric("平均评分", "--")
-        col3.metric("执行时间", "--")
-        col4.metric("策略版本", "v4.1")
+        with col1:
+            st.markdown("""
+            <div class="metric-container">
+                <div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">今日选股</div>
+                <div style="font-size:1.25rem;color:#6b7280;">暂无数据</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            <div class="metric-container">
+                <div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">平均评分</div>
+                <div style="font-size:1.25rem;color:#6b7280;">--</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col3:
+            st.markdown("""
+            <div class="metric-container">
+                <div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">执行时间</div>
+                <div style="font-size:1rem;color:#6b7280;">--</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col4:
+            st.markdown("""
+            <div class="metric-container">
+                <div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">策略版本</div>
+                <div style="font-size:1rem;color:#a5b4fc;">v4.1</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    # 快速查看今日推荐
-    st.subheader("📌 今日推荐 TOP 5")
+    # 今日推荐 TOP 5
+    st.markdown("""
+    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
+        <span style="font-size:1.2rem;">📌</span>
+        <h2 style="color:#e5e7eb;margin:0;font-size:1.1rem;font-weight:600;">今日推荐 TOP 5</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
     if latest_data and latest_data.get('stocks'):
         stocks = latest_data['stocks'][:5]
         for i, stock in enumerate(stocks, 1):
             score = stock['total_score']
+            change = stock['change']
             score_class = 'score-high' if score >= 75 else 'score-medium' if score >= 70 else 'score-low'
+            change_class = 'change-positive' if change >= 0 else 'change-negative'
+            change_icon = '↑' if change >= 0 else '↓'
 
-            col1, col2, col3, col4, col5 = st.columns([2, 2, 2, 2, 2])
-            col1.write(f"**#{i}**")
-            col2.write(f"`{stock['code']}`")
-            col3.write(f"**{stock['name']}**")
-            col4.write(f"{stock['price']:.2f}元")
-            col5.write(f"{stock['change']:+.2f}%")
+            st.markdown(f"""
+            <div class="stock-card" onclick="alert('点击查看详情: {stock['name']}')">
+                <div style="display:flex;align-items:center;gap:1rem;">
+                    <div class="stock-badge">{stock['code'][:2]}</div>
+                    <div style="flex:1;">
+                        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+                            <span style="font-weight:600;color:#e5e7eb;">{stock['name']}</span>
+                            <span style="font-size:0.75rem;color:#6b7280;">{stock['code']}</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:0.75rem;">
+                            <span style="font-family:monospace;font-size:0.9rem;color:#9ca3af;">¥{stock['price']:.2f}</span>
+                            <span class="change-tag {change_class}">{change_icon} {abs(change):.2f}%</span>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="score-indicator {score_class}">{score:.1f}分</span>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
     else:
-        st.info("暂无选股数据，请先执行选股")
-
-    st.markdown("---")
+        st.markdown("""
+        <div class="glass-card" style="text-align:center;padding:2rem;">
+            <div style="font-size:2rem;margin-bottom:0.5rem;">📊</div>
+            <p style="color:#6b7280;margin:0;">暂无选股数据，请先执行选股</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     # 策略说明
-    with st.expander("📖 策略说明"):
+    with st.expander("📖 策略说明", expanded=False):
         st.markdown("""
-        ### 主力埋伏策略 v4.1
+        <div style="color:#9ca3af;line-height:1.6;">
+        <h4 style="color:#e5e7eb;margin-top:0;">主力埋伏策略 v4.1</h4>
+        <p style="margin-bottom:1rem;"><strong>执行时间:</strong> 每天14:50（尾盘）</p>
+        <p style="margin-bottom:1rem;"><strong>核心逻辑:</strong> 捕捉尾盘主力资金介入信号，博取次日开盘溢价</p>
 
-        **执行时间**: 每天14:50（尾盘）
+        <p style="margin-bottom:0.5rem;"><strong>评分权重:</strong></p>
+        <ul style="margin:0;padding-left:1.5rem;margin-bottom:1rem;">
+            <li>乖离率 (25%) - 避免追高风险</li>
+            <li>换手率 (20%) - 反映活跃度</li>
+            <li>成交额 (20%) - 确保流动性</li>
+            <li>价格位置 (15%) - 捕捉强势特征</li>
+            <li>涨幅 (15%) - 适中的涨幅表现</li>
+            <li>振幅 (5%) - 价格稳定性</li>
+        </ul>
 
-        **核心逻辑**: 捕捉尾盘主力资金介入信号，博取次日开盘溢价
-
-        **评分权重**:
-        - 乖离率 (25%) - 避免追高风险
-        - 换手率 (20%) - 反映活跃度
-        - 成交额 (20%) - 确保流动性
-        - 价格位置 (15%) - 捕捉强势特征
-        - 涨幅 (15%) - 适中的涨幅表现
-        - 振幅 (5%) - 价格稳定性
-
-        **筛选条件**:
-        - 市值: 20亿 - 200亿
-        - 涨幅: 0.5% - 8.0%
-        - 成交额: ≥1亿
-        - 乖离率: ≤5%
-        - 换手率: 1.5% - 8.0%
-        """)
+        <p style="margin-bottom:0.5rem;"><strong>筛选条件:</strong></p>
+        <ul style="margin:0;padding-left:1.5rem;">
+            <li>市值: 5亿 - 200亿</li>
+            <li>涨幅: 0.5% - 8.0%</li>
+            <li>成交额: ≥1亿</li>
+            <li>乖离率: ≤5%</li>
+            <li>换手率: 1.5% - 8.0%</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ==================== 最新选股页面 ====================
 def show_latest_results():
