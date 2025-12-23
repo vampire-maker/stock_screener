@@ -774,21 +774,22 @@ def run_stock_screening_with_config(config):
         return None, "配置模块未正确加载"
 
     try:
-        import src.config as config_module
-        import src.main_force_burial_strategy as strategy_module
-
-        # 保存原始配置
-        original_params = config_module.StockScreenerConfig.main_force_burial_params
-        original_weights = None
-
-        # 应用自定义配置
-        if 'params' in config:
-            config_module.StockScreenerConfig.main_force_burial_params = config['params']
-
         # 创建策略实例
-        strategy = strategy_module.MainForceBurialStrategy()
+        strategy = MainForceBurialStrategy()
 
-        # 如果有自定义权重，应用权重
+        # 应用自定义配置参数
+        if 'params' in config:
+            custom_params = config['params']
+            # 更新策略中的参数
+            strategy.MIN_MV = custom_params.get('MIN_MV', 200000000)
+            strategy.MAX_MV = custom_params.get('MAX_MV', 20000000000)
+            strategy.MIN_PCT = custom_params.get('MIN_PCT', 0.5)
+            strategy.MAX_PCT = custom_params.get('MAX_PCT', 8.0)
+            strategy.MAX_DEVIATION = custom_params.get('MAX_DEVIATION', 5.0)
+            strategy.INDEX_RISK_THR = custom_params.get('INDEX_RISK_THR', -0.6)
+            strategy.MIN_AMOUNT = custom_params.get('MIN_AMOUNT', 100000000)
+
+        # 应用自定义评分权重
         if 'weights' in config:
             strategy.scoring_weights = config['weights']
 
@@ -801,9 +802,6 @@ def run_stock_screening_with_config(config):
                 stock['config_name'] = config.get('name', '默认配置')
 
         result_file = strategy.save_results()
-
-        # 恢复原始配置
-        config_module.StockScreenerConfig.main_force_burial_params = original_params
 
         return results, result_file
     except Exception as e:
