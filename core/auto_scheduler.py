@@ -45,6 +45,7 @@ class AutoScheduler:
         self.running = True
         self.last_executed = {
             '11:30': None,
+            '14:30': None,
             '14:50': None
         }
 
@@ -93,14 +94,10 @@ class AutoScheduler:
             })
 
             # 根据时间段执行不同的选股脚本
-            if timeframe == '14:40':
-                # 执行14:40主力埋伏策略v4.0（使用带邮件功能的脚本）
-                script_path = 'src/main_force_burial_strategy.py'
-                logger.info("使用主力埋伏策略v4.0 (30-500亿，涨幅1%-5%，换手率收紧，成交额≥3亿，技术评分≥20)")
-            elif timeframe == '14:30':
-                # 14:30策略已删除，跳过执行
-                logger.info("14:30策略已删除，跳过执行")
-                return
+            if timeframe == '14:30':
+                # 执行快刀手晚进早出策略v2.0
+                script_path = 'src/quick_knife_strategy.py'
+                logger.info("使用快刀手晚进早出策略v2.0 (涨幅2.8-4.5%, 量比1.0-1.6, 换手率U型分布)")
             elif timeframe == '14:50':
                 # 执行14:50主力埋伏策略v4.1 (优化评分版)
                 script_path = 'src/main_force_burial_strategy.py'
@@ -146,13 +143,13 @@ class AutoScheduler:
                 self.execute_stock_screening('11:30')
                 self.last_executed[task_key] = current_date
 
-        # 14:30任务已删除，跳过
-        # elif self.should_execute_task(current_time, 14, 30):
-        #     task_key = '14:30'
-        #     if self.last_executed[task_key] != current_date:
-        #         logger.info("执行14:30股票筛选任务...")
-        #         self.execute_stock_screening('14:30')
-        #         self.last_executed[task_key] = current_date
+        # 检查14:30任务 - 快刀手晚进早出策略
+        elif self.should_execute_task(current_time, 14, 30):
+            task_key = '14:30'
+            if self.last_executed[task_key] != current_date:
+                logger.info("执行14:30快刀手晚进早出策略任务...")
+                self.execute_stock_screening('14:30')
+                self.last_executed[task_key] = current_date
 
         # 检查14:50任务
         elif self.should_execute_task(current_time, 14, 50):
@@ -167,16 +164,20 @@ class AutoScheduler:
         current_time = datetime.now()
         current_date = current_time.date()
 
-        # 今天的任务时间（14:30策略已删除）
+        # 今天的任务时间
         task1 = datetime(
             current_time.year, current_time.month, current_time.day,
             11, 30, 0, 0
         )
         task2 = datetime(
             current_time.year, current_time.month, current_time.day,
+            14, 30, 0, 0
+        )
+        task3 = datetime(
+            current_time.year, current_time.month, current_time.day,
             14, 50, 0, 0
         )
-        today_tasks = [task1, task2]
+        today_tasks = [task1, task2, task3]
 
         # 找到下一个未执行的任务
         for task_time in today_tasks:
@@ -199,6 +200,7 @@ class AutoScheduler:
         logger.info("=" * 50)
         logger.info("⏰ 定时任务:")
         logger.info("  • 11:30 - 自适应主力埋伏策略 (实时数据，如休盘则使用最新历史数据)")
+        logger.info("  • 14:30 - 快刀手晚进早出策略v2.0 (涨幅2.8-4.5%, 量比1.0-1.6, 换手率U型)")
         logger.info("  • 14:50 - 主力埋伏策略v4.1 (优化评分版 - 精选TOP 10)")
         logger.info("💡 按 Ctrl+C 停止调度器")
         logger.info("=" * 50)
