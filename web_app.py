@@ -373,9 +373,41 @@ def get_default_config():
         }
     }
 
+def get_quick_knife_config():
+    """获取快刀手晚进早出配置"""
+    return {
+        'name': '快刀手晚进早出',
+        'description': '14:30选股，捕捉强势股尾盘机会，次日早盘出局',
+        'params': {
+            'MIN_MV': 0,  # 无最小市值限制
+            'MAX_MV': 20000000000,  # 最大200亿
+            'MIN_PCT': 2.5,  # 最小涨幅2.5%
+            'MAX_PCT': 5.0,  # 最大涨幅5%
+            'MAX_DEVIATION': 0,  # 价格在日均线上(乖离率>=0)
+            'INDEX_RISK_THR': -1.0,  # 指数风险阈值
+            'MIN_AMOUNT': 50000000,  # 最小成交额5000万
+            # 新增参数
+            'MIN_VOLUME_RATIO': 1.0,  # 量比大于1
+            'PRICE_ABOVE_MA': True,  # 全天价格在日均线上
+            'HAS_LIMIT_UP_20D': True,  # 近20日有过涨停
+            'BOARDS': ['主板', '创业板'],  # 只看主板和创业板
+        },
+        'weights': {
+            'deviation_score': 30,  # 乖离率更重要(确保在均线上方)
+            'change_score': 25,  # 涨幅权重提高(捕捉强势)
+            'turnover_score': 20,
+            'amount_score': 10,
+            'position_score': 10,
+            'amplitude_score': 5
+        }
+    }
+
 def get_all_configs():
     """获取所有配置（包括默认配置）"""
-    configs = {'默认配置': get_default_config()}
+    configs = {
+        '默认配置': get_default_config(),
+        '快刀手晚进早出': get_quick_knife_config()
+    }
     configs.update(load_custom_configs())
     return configs
 
