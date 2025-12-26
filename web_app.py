@@ -38,27 +38,29 @@ st.markdown("""
 
     /* 玻璃态效果 */
     .glass-card {
-        background: rgba(20, 20, 25, 0.7);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
+        background: rgba(30, 30, 35, 0.6);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
         padding: 1.5rem;
         margin-bottom: 1rem;
         transition: all 0.3s ease;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
     }
 
     .glass-card:hover {
-        border-color: rgba(99, 102, 241, 0.3);
-        box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1);
+        border-color: rgba(251, 191, 36, 0.3);
+        box-shadow: 0 8px 32px rgba(251, 191, 36, 0.1);
+        transform: translateY(-2px);
     }
 
     /* 主标题样式 */
     .main-header {
         text-align: center;
         padding: 2rem;
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
-        border: 1px solid rgba(99, 102, 241, 0.2);
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(245, 158, 11, 0.05) 100%);
+        border: 1px solid rgba(251, 191, 36, 0.15);
         border-radius: 16px;
         margin-bottom: 2rem;
         position: relative;
@@ -72,27 +74,28 @@ st.markdown("""
         left: 0;
         right: 0;
         bottom: 0;
-        background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent 50%);
+        background: radial-gradient(circle at top right, rgba(251, 191, 36, 0.12), transparent 50%);
         pointer-events: none;
     }
 
     /* 股票卡片样式 */
     .stock-card {
-        background: rgba(20, 20, 25, 0.6);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
+        background: rgba(25, 25, 30, 0.5);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
         padding: 1rem 1.25rem;
         margin-bottom: 0.75rem;
-        transition: all 0.2s ease;
+        transition: all 0.25s ease;
         cursor: pointer;
     }
 
     .stock-card:hover {
-        background: rgba(30, 30, 40, 0.8);
-        border-color: rgba(99, 102, 241, 0.3);
+        background: rgba(35, 35, 45, 0.7);
+        border-color: rgba(251, 191, 36, 0.25);
         transform: translateY(-2px);
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
     }
 
     /* 评分指示器 */
@@ -149,65 +152,77 @@ st.markdown("""
 
     /* 按钮样式增强 */
     .stButton > button {
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
         color: white;
         border: none;
         border-radius: 10px;
         padding: 0.5rem 1.5rem;
         font-weight: 500;
         transition: all 0.2s ease;
-        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
     }
 
     .stButton > button:hover {
         transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+    }
+
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        box-shadow: 0 4px 16px rgba(251, 191, 36, 0.35);
+    }
+
+    .stButton > button[kind="primary"]:hover {
+        box-shadow: 0 6px 22px rgba(251, 191, 36, 0.45);
     }
 
     /* 输入框样式 */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select,
     .stNumberInput > div > div > input {
-        background: rgba(10, 10, 15, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(15, 15, 20, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         color: #e5e7eb;
-        border-radius: 8px;
+        border-radius: 10px;
     }
 
     .stTextInput > div > div > input:focus,
     .stSelectbox > div > div > select:focus,
     .stNumberInput > div > div > input:focus {
-        border-color: rgba(99, 102, 241, 0.5);
-        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        border-color: rgba(251, 191, 36, 0.4);
+        box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.1);
     }
 
     /* 指标卡片 */
     .metric-container {
-        background: rgba(20, 20, 25, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
+        background: rgba(25, 25, 30, 0.5);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
         padding: 1rem 1.25rem;
         text-align: center;
     }
 
     /* 表格样式 */
     .dataframe {
-        background: rgba(20, 20, 25, 0.6);
-        border-radius: 12px;
+        background: rgba(25, 25, 30, 0.5);
+        border-radius: 14px;
         overflow: hidden;
     }
 
     /* Expander样式 */
     .streamlit-expanderHeader {
-        background: rgba(30, 30, 40, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
+        background: rgba(30, 30, 40, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
         padding: 0.75rem 1rem;
     }
 
     /* 进度条样式 */
     .stProgress > div > div > div > div {
-        background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+        background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #ea580c 100%);
     }
 
     /* 自定义滚动条 */
@@ -239,9 +254,9 @@ st.markdown("""
         border-radius: 10px;
         font-size: 0.75rem;
         font-weight: 700;
-        background: rgba(99, 102, 241, 0.2);
-        color: #a5b4fc;
-        border: 1px solid rgba(99, 102, 241, 0.3);
+        background: rgba(251, 191, 36, 0.15);
+        color: #fcd34d;
+        border: 1px solid rgba(251, 191, 36, 0.3);
     }
 
     /* 闪烁效果 */
@@ -374,31 +389,41 @@ def get_default_config():
     }
 
 def get_quick_knife_config():
-    """获取快刀手晚进早出配置"""
+    """获取快刀手晚进早出配置 v2.0 - 基于326只股票回测优化"""
     return {
-        'name': '快刀手晚进早出',
-        'description': '14:30选股，捕捉强势股尾盘机会，次日早盘出局',
+        'name': '快刀手晚进早出 v2.0',
+        'description': '14:30选股，捕捉强势股尾盘机会，次日早盘出局。基于回测优化：换手率U型分布+量比适中+近20日涨停优先',
         'params': {
+            # 基础参数
             'MIN_MV': 0,  # 无最小市值限制
             'MAX_MV': 20000000000,  # 最大200亿
-            'MIN_PCT': 2.5,  # 最小涨幅2.5%
-            'MAX_PCT': 5.0,  # 最大涨幅5%
+            'MIN_PCT': 2.8,  # 最小涨幅2.8% (收窄下限，避开弱势)
+            'MAX_PCT': 4.5,  # 最大涨幅4.5% (收窄上限，避免追高)
             'MAX_DEVIATION': 0,  # 价格在日均线上(乖离率>=0)
             'INDEX_RISK_THR': -1.0,  # 指数风险阈值
             'MIN_AMOUNT': 50000000,  # 最小成交额5000万
-            # 新增参数
-            'MIN_VOLUME_RATIO': 1.0,  # 量比大于1
+
+            # v2.0优化参数 (基于326只股票回测)
+            'MIN_VOLUME_RATIO': 1.0,  # 量比最小值
+            'MAX_VOLUME_RATIO': 1.6,  # 量比最大值 (收窄，避开诱多)
             'PRICE_ABOVE_MA': True,  # 全天价格在日均线上
-            'HAS_LIMIT_UP_20D': True,  # 近20日有过涨停
+            'HAS_LIMIT_UP_20D': True,  # 近20日有过涨停 (胜率+8.6%)
             'BOARDS': ['主板', '创业板'],  # 只看主板和创业板
+
+            # 换手率参数 (U型分布：两头优、中间差)
+            'TURNOVER_MODE': 'U_SHAPE',  # U型模式
+            'TURNOVER_LOW_MAX': 2.5,  # 低换手率区间上限 (主力控盘)
+            'TURNOVER_HIGH_MIN': 18.0,  # 高换手率区间下限 (资金活跃)
+            'TURNOVER_AVOID_MIN': 5.0,  # 避开区间下限
+            'TURNOVER_AVOID_MAX': 10.0,  # 避开区间上限 (最差区间)
         },
         'weights': {
-            'deviation_score': 30,  # 乖离率更重要(确保在均线上方)
-            'change_score': 25,  # 涨幅权重提高(捕捉强势)
-            'turnover_score': 20,
-            'amount_score': 10,
-            'position_score': 10,
-            'amplitude_score': 5
+            'deviation_score': 25,
+            'change_score': 20,
+            'turnover_score': 25,  # 换手率权重提高 (最强预测指标)
+            'volume_ratio_score': 15,  # 量比权重
+            'limit_up_20d_score': 10,  # 近20日涨停加分
+            'amount_score': 5,
         }
     }
 
@@ -471,7 +496,7 @@ def show_homepage():
     st.markdown("""
     <div class="main-header" style="position:relative;z-index:1;">
         <div style="display:flex;align-items:center;justify-content:center;gap:1rem;">
-            <div style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);padding:0.75rem;border-radius:12px;box-shadow:0 4px 20px rgba(99,102,241,0.3);">
+            <div style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);padding:0.75rem;border-radius:12px;box-shadow:0 4px 20px rgba(251,191,36,0.3);">
                 <span style="font-size:1.5rem;">✨</span>
             </div>
             <div>
@@ -519,7 +544,7 @@ def show_homepage():
             st.markdown("""
             <div class="metric-container">
                 <div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">策略版本</div>
-                <div style="font-size:1rem;font-weight:600;color:#a5b4fc;">v4.1</div>
+                <div style="font-size:1rem;font-weight:600;color:#fcd34d;">v4.1</div>
             </div>
             """, unsafe_allow_html=True)
     else:
@@ -548,7 +573,7 @@ def show_homepage():
             st.markdown("""
             <div class="metric-container">
                 <div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">策略版本</div>
-                <div style="font-size:1rem;color:#a5b4fc;">v4.1</div>
+                <div style="font-size:1rem;color:#fcd34d;">v4.1</div>
             </div>
             """, unsafe_allow_html=True)
 
