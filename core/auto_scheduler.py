@@ -44,7 +44,6 @@ class AutoScheduler:
     def __init__(self):
         self.running = True
         self.last_executed = {
-            '11:30': None,
             '14:30': None,
             '14:50': None
         }
@@ -103,9 +102,8 @@ class AutoScheduler:
                 script_path = 'src/main_force_burial_strategy.py'
                 logger.info("使用主力埋伏策略v4.1 (优化评分版 - 精选TOP 10)")
             else:
-                # 执行11:30自适应主力埋伏策略
-                script_path = 'adaptive_main_force_strategy.py'
-                logger.info("使用自适应主力埋伏策略 (判断交易时段，自动选择数据源)")
+                logger.error(f"未知的时间段: {timeframe}")
+                return
 
             # 执行选股脚本
             result = subprocess.run(
@@ -135,16 +133,8 @@ class AutoScheduler:
         current_time = datetime.now()
         current_date = current_time.date()
 
-        # 检查11:30任务
-        if self.should_execute_task(current_time, 11, 30):
-            task_key = '11:30'
-            if self.last_executed[task_key] != current_date:
-                logger.info("执行11:30股票筛选任务...")
-                self.execute_stock_screening('11:30')
-                self.last_executed[task_key] = current_date
-
         # 检查14:30任务 - 快刀手晚进早出策略
-        elif self.should_execute_task(current_time, 14, 30):
+        if self.should_execute_task(current_time, 14, 30):
             task_key = '14:30'
             if self.last_executed[task_key] != current_date:
                 logger.info("执行14:30快刀手晚进早出策略任务...")
@@ -167,17 +157,13 @@ class AutoScheduler:
         # 今天的任务时间
         task1 = datetime(
             current_time.year, current_time.month, current_time.day,
-            11, 30, 0, 0
+            14, 30, 0, 0
         )
         task2 = datetime(
             current_time.year, current_time.month, current_time.day,
-            14, 30, 0, 0
-        )
-        task3 = datetime(
-            current_time.year, current_time.month, current_time.day,
             14, 50, 0, 0
         )
-        today_tasks = [task1, task2, task3]
+        today_tasks = [task1, task2]
 
         # 找到下一个未执行的任务
         for task_time in today_tasks:
@@ -190,7 +176,7 @@ class AutoScheduler:
         tomorrow = current_date + timedelta(days=1)
         tomorrow_task = datetime(
             tomorrow.year, tomorrow.month, tomorrow.day,
-            11, 30, 0, 0
+            14, 30, 0, 0
         )
         return tomorrow_task
 
@@ -199,7 +185,6 @@ class AutoScheduler:
         logger.info("🚀 股票筛选自动调度器启动")
         logger.info("=" * 50)
         logger.info("⏰ 定时任务:")
-        logger.info("  • 11:30 - 自适应主力埋伏策略 (实时数据，如休盘则使用最新历史数据)")
         logger.info("  • 14:30 - 快刀手晚进早出策略v2.0 (涨幅2.8-4.5%, 量比1.0-1.6, 换手率U型)")
         logger.info("  • 14:50 - 主力埋伏策略v4.1 (优化评分版 - 精选TOP 10)")
         logger.info("💡 按 Ctrl+C 停止调度器")
