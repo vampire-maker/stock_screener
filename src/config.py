@@ -20,12 +20,19 @@ except ImportError:
 
 def get_env_var(key: str, default: str = '') -> str:
     """获取环境变量（兼容本地和Streamlit Cloud）"""
+    # 首先尝试从环境变量读取（本地开发优先）
+    env_value = os.getenv(key, default)
+    if env_value:
+        return env_value
+
+    # 如果环境变量为空，再尝试Streamlit secrets
     if STREAMLIT_CLOUD:
         try:
             return st.secrets[key]
         except (KeyError, FileNotFoundError):
-            return default
-    return os.getenv(key, default)
+            pass
+
+    return default
 
 class StockScreenerConfig:
     """股票筛选系统配置管理类"""
@@ -119,12 +126,36 @@ class StockScreenerConfig:
             'update_interval_hours': 24,  # 更新间隔
         }
 
+        # 快刀手晚进早出策略参数 v2.0 (基于326只股票回测优化)
+        self.quick_knife_params = {
+            'MIN_MV': 0,  # 无最小市值限制
+            'MAX_MV': 20000000000,  # 最大200亿
+            'MIN_PCT': 2.8,  # 最小涨幅2.8% (收窄下限，避开弱势)
+            'MAX_PCT': 4.5,  # 最大涨幅4.5% (收窄上限，避免追高)
+            'MAX_DEVIATION': 0,  # 价格在日均线上
+            'INDEX_RISK_THR': -1.0,  # 指数风险阈值
+            'MIN_AMOUNT': 50000000,  # 最小成交额5000万
+            'MIN_VOLUME_RATIO': 1.0,  # 量比最小值
+            'MAX_VOLUME_RATIO': 1.6,  # 量比最大值 (收窄，避开诱多)
+            'PRICE_ABOVE_MA': True,  # 全天价格在日均线上
+            'HAS_LIMIT_UP_20D': True,  # 近20日有过涨停 (胜率+8.6%)
+            'BOARDS': ['主板', '创业板'],  # 只看主板和创业板
+            # 换手率参数 (U型分布：两头优、中间差)
+            'TURNOVER_MODE': 'U_SHAPE',
+            'TURNOVER_LOW_MAX': 2.5,  # 低换手率区间上限 (主力控盘)
+            'TURNOVER_HIGH_MIN': 18.0,  # 高换手率区间下限 (资金活跃)
+            'TURNOVER_AVOID_MIN': 5.0,  # 避开区间下限
+            'TURNOVER_AVOID_MAX': 10.0,  # 避开区间上限 (最差区间)
+            **self.common_params
+        }
+
     def get_strategy_params(self, strategy_name: str) -> Dict[str, Any]:
         """获取指定策略的参数"""
         strategy_map = {
             'enhanced_1130': self.enhanced_1130_params,
             'enhanced_1430': self.enhanced_1430_params,
             'main_force_burial': self.main_force_burial_params,
+            'quick_knife': self.quick_knife_params,
         }
         return strategy_map.get(strategy_name, {})
 
