@@ -22,18 +22,100 @@ st.set_page_config(
 # 自定义CSS样式 - 暗色主题 + 玻璃态效果
 st.markdown("""
 <style>
-    /* 全局样式 - 暗色主题 */
+    /* 全局样式 - 强制暗色主题 */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-    /* 覆盖Streamlit默认样式 */
-    .main {
-        background-color: #050505 !important;
+    /* 覆盖Streamlit和浏览器主题 */
+    :root {
+        --background-color: #050505;
+        --secondary-background-color: #0a0a0a;
+        --text-color: #e5e7eb;
+        --primary-color: #fbbf24;
     }
 
-    /* 侧边栏样式 */
+    /* 强制暗色背景 - 覆盖所有可能的亮色主题 */
+    .main,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stAppViewBlock"],
+    body {
+        background-color: #050505 !important;
+        color: #e5e7eb !important;
+    }
+
+    /* 覆盖浏览器的prefers-color-scheme */
+    @media (prefers-color-scheme: light) {
+        .main,
+        [data-testid="stAppViewContainer"],
+        [data-testid="stAppViewBlock"],
+        body {
+            background-color: #050505 !important;
+            color: #e5e7eb !important;
+        }
+    }
+
+    /* 侧边栏样式 - 强制暗色 */
     section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
-        border-right: 1px solid rgba(255,255,255,0.05);
+        background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%) !important;
+        border-right: 1px solid rgba(255,255,255,0.05) !important;
+    }
+
+    /* 侧边栏内容强制暗色 */
+    [data-testid="stSidebar"] [class*="css"] {
+        color: #e5e7eb !important;
+    }
+
+    /* 标题文字颜色 */
+    h1, h2, h3, h4, h5, h6 {
+        color: #e5e7eb !important;
+    }
+
+    /* 覆盖metric组件颜色 */
+    [data-testid="stMetricValue"] {
+        color: #e5e7eb !important;
+    }
+    [data-testid="stMetricDelta"] {
+        color: #9ca3af !important;
+    }
+
+    /* 覆盖info/warning/success boxes */
+    .stAlert, [data-testid="stAlert"] {
+        background-color: rgba(25, 25, 30, 0.8) !important;
+        color: #e5e7eb !important;
+    }
+
+    /* 输入框文字 */
+    input, select, textarea {
+        color: #e5e7eb !important;
+        background-color: rgba(15, 15, 20, 0.8) !important;
+    }
+
+    /* 数据框/表格 */
+    .dataframe, [data-testid="stDataFrame"] {
+        background-color: rgba(25, 25, 30, 0.5) !important;
+        color: #e5e7eb !important;
+    }
+    .dataframe td, .dataframe th,
+    [data-testid="stDataFrame"] td,
+    [data-testid="stDataFrame"] th {
+        color: #e5e7eb !important;
+        background-color: transparent !important;
+        border-color: rgba(255,255,255,0.1) !important;
+    }
+
+    /* 代码块 */
+    code, pre {
+        background-color: rgba(15, 15, 20, 0.9) !important;
+        color: #fbbf24 !important;
+    }
+
+    /* 覆盖单选按钮文字 */
+    [data-testid="stRadio"] label {
+        color: #e5e7eb !important;
+    }
+
+    /* 覆盖selectbox选项 */
+    [data-testid="stSelectbox"] label {
+        color: #e5e7eb !important;
     }
 
     /* 玻璃态效果 */
